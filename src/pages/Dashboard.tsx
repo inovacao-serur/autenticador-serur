@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase/client'
-import { Search, Copy, Shield } from 'lucide-react'
+import { Search, Copy, Users, Shield, Pencil } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { AddUserDialog } from '@/components/AddUserDialog'
 import { EditUserDialog } from '@/components/EditUserDialog'
 import { generateTOTP, getTimeRemaining } from '@/lib/totp'
-import type { TOTPCode, Team } from '@/lib/supabase/types'
+import type { TOTPCode } from '@/lib/supabase/client'
 
 interface User {
   id: string
@@ -34,31 +34,29 @@ interface TeamInfo {
   name: string
 }
 
-interface ExtendedTOTPCode extends TOTPCode {
-  teamsList: TeamInfo[]
-}
-
 export function Dashboard() {
   const { user } = useAuth()
-  const [codes, setCodes] = useState<ExtendedTOTPCode[]>([])
+  const [codes, setCodes] = useState<(TOTPCode & { teamsList: TeamInfo[] })[]>([])
   const [users, setUsers] = useState<User[]>([])
   const [userTeams, setUserTeams] = useState<Record<string, UserTeam[]>>({})
   const [searchQuery, setSearchQuery] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
+  const [currentTime, setCurrentTime] = useState(Math.floor(Date.now() / 1000))
   const { toast } = useToast()
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCodes(prevCodes => [...prevCodes])
+    const timer = setInterval(() => {
+      setCurrentTime(Math.floor(Date.now() / 1000))
     }, 1000)
 
-    return () => clearInterval(interval)
+    return () => clearInterval(timer)
   }, [])
 
   const fetchUsers = useCallback(async () => {
     if (!isAdmin || !user) return
 
     try {
+      // Get all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
@@ -67,6 +65,7 @@ export function Dashboard() {
       if (profilesError) throw profilesError
       setUsers(profiles || [])
 
+      // Get teams for all users
       const { data: teamUsers, error: teamsError } = await supabase
         .from('user_teams')
         .select(`
@@ -80,8 +79,9 @@ export function Dashboard() {
 
       if (teamsError) throw teamsError
 
+      // Build teams map
       const teamsMap: Record<string, UserTeam[]> = {}
-      teamUsers?.forEach(ut => {
+      teamUsers.forEach(ut => {
         if (!teamsMap[ut.user_id]) {
           teamsMap[ut.user_id] = []
         }
@@ -117,7 +117,7 @@ export function Dashboard() {
           team_id,
           created_at,
           created_by,
-          teams (
+          teams:team_id (
             id,
             name
           )
@@ -125,6 +125,7 @@ export function Dashboard() {
         .order('name')
 
       if (!isAdmin) {
+        // For non-admin users, only fetch codes for their teams
         const { data: userTeams } = await supabase
           .from('user_teams')
           .select('team_id')
@@ -142,7 +143,8 @@ export function Dashboard() {
 
       if (error) throw error
 
-      const codesMap = new Map<string, ExtendedTOTPCode>()
+      // Group codes by name and secret, collecting all teams
+      const codesMap = new Map<string, TOTPCode & { teamsList: TeamInfo[] }>()
       
       data?.forEach(code => {
         const key = `${code.name}-${code.secret}`
@@ -173,6 +175,7 @@ export function Dashboard() {
   useEffect(() => {
     if (!user) return
 
+    // Check if user is admin
     const checkAdmin = async () => {
       try {
         const { data: profile } = await supabase
@@ -195,6 +198,7 @@ export function Dashboard() {
     let subscription: ReturnType<typeof supabase.channel> | null = null
 
     const setupSubscription = () => {
+      // Subscribe to changes
       subscription = supabase
         .channel('schema_db_changes')
         .on('postgres_changes', { 
@@ -220,17 +224,19 @@ export function Dashboard() {
         }, () => {
           console.log('User teams changed, refreshing...')
           fetchUsers()
-          fetchCodes()
+          fetchCodes() // Also refresh codes as team access might have changed
         })
         .subscribe()
     }
 
+    // Initial data fetch
     checkAdmin().then(() => {
       fetchCodes()
       fetchUsers()
       setupSubscription()
     })
 
+    // Cleanup subscription on unmount
     return () => {
       if (subscription) {
         console.log('Cleaning up subscription...')
@@ -272,6 +278,7 @@ export function Dashboard() {
         </div>
 
         <TabsContent value="codes" className="space-y-6">
+          {/* Search Bar */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-zinc-400" />
             <Input
@@ -283,6 +290,7 @@ export function Dashboard() {
             />
           </div>
 
+          {/* TOTP Codes List */}
           <div className="space-y-4">
             {filteredCodes.map((code) => (
               <div
@@ -354,6 +362,7 @@ export function Dashboard() {
               <AddUserDialog />
             </div>
 
+            {/* Search Bar */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-zinc-400" />
               <Input
@@ -365,6 +374,7 @@ export function Dashboard() {
               />
             </div>
 
+            {/* Users List */}
             <div className="space-y-4">
               {filteredUsers.map((u) => (
                 <div

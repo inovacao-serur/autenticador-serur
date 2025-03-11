@@ -6,6 +6,7 @@ import { ResetPassword } from '@/pages/ResetPassword'
 import { Dashboard } from '@/pages/Dashboard'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { PrivateRoute } from '@/components/PrivateRoute'
+import { IOSInstallPrompt } from '@/components/IOSInstallPrompt'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         </Route>
       </Routes>
       <Toaster />
+      <IOSInstallPrompt />
     </AuthProvider>
   )
 }

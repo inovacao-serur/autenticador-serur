@@ -31,10 +31,6 @@ export interface Database {
           user_id: string
           team_id: string
           created_at: string
-          teams?: {
-            id: string
-            name: string
-          }
         }
         Insert: {
           user_id: string
@@ -55,10 +51,6 @@ export interface Database {
           team_id: string
           created_at: string
           created_by: string
-          teams?: {
-            id: string
-            name: string
-          }
         }
         Insert: {
           id?: string
@@ -77,32 +69,6 @@ export interface Database {
           created_by?: string
         }
       }
-      profiles: {
-        Row: {
-          id: string
-          email: string
-          metadata: {
-            name: string
-            is_admin: boolean
-          }
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id: string
-          email: string
-          metadata?: Json
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          email?: string
-          metadata?: Json
-          created_at?: string
-          updated_at?: string
-        }
-      }
     }
     Views: {
       [_ in never]: never
@@ -115,7 +81,3 @@ export interface Database {
     }
   }
 }
-
-export type Team = Database['public']['Tables']['teams']['Row']
-export type TOTPCode = Database['public']['Tables']['totp_codes']['Row']
-export type Profile = Database['public']['Tables']['profiles']['Row']
