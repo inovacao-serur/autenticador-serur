@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase/client'
 import { Modal, ModalHeader, ModalTitle } from '@/components/ui/modal'
 import { useAuth } from '@/contexts/AuthContext'
 import { validateTOTPSecret, parseOTPAuthURL } from '@/lib/totp'
+import { BrowserQRCodeReader } from '@zxing/browser'
 
 interface Team {
   id: string
@@ -22,8 +23,50 @@ export function AddTOTPDialog() {
   const [selectedTeams, setSelectedTeams] = useState<string[]>([])
   const [isScanning, setIsScanning] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const codeReader = useRef<BrowserQRCodeReader | null>(null)
   const { toast } = useToast()
   const { user } = useAuth()
+
+  // Stop camera and cleanup
+  const stopCamera = async () => {
+    try {
+      // First stop the video stream
+      if (videoRef.current?.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream
+        stream.getTracks().forEach(track => {
+          track.stop()
+        })
+        videoRef.current.srcObject = null
+      }
+
+      // Then cleanup the code reader
+      if (codeReader.current) {
+        try {
+          await codeReader.current.reset()
+        } catch (error) {
+          console.warn('Error resetting code reader:', error)
+        }
+        codeReader.current = null
+      }
+    } catch (error) {
+      console.warn('Error during camera cleanup:', error)
+    }
+  }
+
+  // Handle dialog close
+  const handleClose = async () => {
+    await stopCamera()
+    setIsOpen(false)
+  }
+
+  // Handle scanning mode toggle
+  const toggleScanning = async (scan: boolean) => {
+    if (!scan) {
+      await stopCamera()
+    }
+    setIsScanning(scan)
+  }
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -56,74 +99,90 @@ export function AddTOTPDialog() {
     }
   }, [isOpen])
 
+  // Handle camera initialization and cleanup
   useEffect(() => {
-    let scanner: any = null
+    let mounted = true
 
-    if (isOpen && isScanning) {
-      import('html5-qrcode').then(({ Html5QrcodeScanner }) => {
-        scanner = new Html5QrcodeScanner(
-          'qr-reader',
-          { 
-            fps: 10, 
-            qrbox: { width: 250, height: 250 },
-            rememberLastUsedCamera: true,
-            aspectRatio: 1
-          },
-          false
+    const initializeScanner = async () => {
+      if (!isScanning || !videoRef.current || !mounted) {
+        await stopCamera()
+        return
+      }
+
+      try {
+        // Clean up any existing scanner
+        await stopCamera()
+
+        // Initialize new scanner
+        codeReader.current = new BrowserQRCodeReader()
+        const videoInputDevices = await BrowserQRCodeReader.listVideoInputDevices()
+        
+        // Prefer rear camera on mobile devices
+        const rearCamera = videoInputDevices.find(device => 
+          device.label.toLowerCase().includes('back') || 
+          device.label.toLowerCase().includes('rear')
         )
+        
+        const deviceId = rearCamera ? rearCamera.deviceId : videoInputDevices[0]?.deviceId
 
-        scanner.render(
-          (decodedText: string) => {
-            try {
-              const result = parseOTPAuthURL(decodedText)
-              if (result && result.secret) {
-                if (validateTOTPSecret(result.secret)) {
-                  setSecret(result.secret)
-                  setName(result.label || '')
-                  setIsScanning(false)
-                  scanner?.clear()
-                } else {
-                  toast({
-                    variant: "destructive",
-                    title: "Invalid QR Code",
-                    description: "The scanned QR code contains an invalid TOTP secret"
-                  })
+        if (!deviceId) {
+          throw new Error('No camera found')
+        }
+
+        await codeReader.current.decodeFromVideoDevice(
+          deviceId,
+          videoRef.current,
+          (result, error) => {
+            if (!mounted) return
+
+            if (result) {
+              try {
+                const parsed = parseOTPAuthURL(result.getText())
+                if (parsed && parsed.secret) {
+                  if (validateTOTPSecret(parsed.secret)) {
+                    setSecret(parsed.secret)
+                    setName(parsed.label || '')
+                    toggleScanning(false)
+                  }
                 }
-              } else {
-                toast({
-                  variant: "destructive",
-                  title: "Invalid QR Code",
-                  description: "The scanned QR code is not a valid TOTP code"
-                })
+              } catch (err) {
+                // Ignore parsing errors as they're expected when scanning invalid codes
+                console.debug('Invalid QR code format:', err)
               }
-            } catch (error) {
-              toast({
-                variant: "destructive",
-                title: "Invalid QR Code",
-                description: "Failed to parse the QR code"
-              })
             }
-          },
-          (error: any) => {
-            console.error('QR scan error:', error)
+            // Only log unexpected errors
+            if (error && error.name !== 'NotFoundException') {
+              console.debug('QR scan error:', error)
+            }
           }
         )
-      })
-    }
-
-    return () => {
-      if (scanner) {
-        scanner.clear()
+      } catch (error) {
+        if (!mounted) return
+        
+        console.error('Error initializing scanner:', error)
+        toast({
+          variant: "destructive",
+          title: "Erro na câmera",
+          description: "Não foi possível inicializar a câmera. Verifique as permissões."
+        })
+        setIsScanning(false)
       }
     }
-  }, [isOpen, isScanning])
+
+    initializeScanner()
+
+    return () => {
+      mounted = false
+      stopCamera()
+    }
+  }, [isScanning])
 
   const handleSubmit = async () => {
     if (!name || !secret || selectedTeams.length === 0) {
       toast({
         variant: "destructive",
-        title: "Validation error",
-        description: "Please fill in all required fields and select at least one team"
+        title: "Erro de validação",
+        description: "Por favor, preencha todos os campos obrigatórios e selecione pelo menos um time"
       })
       return
     }
@@ -131,18 +190,17 @@ export function AddTOTPDialog() {
     if (!user) {
       toast({
         variant: "destructive",
-        title: "Authentication error",
-        description: "You must be logged in to add TOTP codes"
+        title: "Erro de autenticação",
+        description: "Você precisa estar logado para adicionar códigos TOTP"
       })
       return
     }
 
-    // Validate the secret
     if (!validateTOTPSecret(secret)) {
       toast({
         variant: "destructive",
-        title: "Invalid secret",
-        description: "The provided secret is not valid for TOTP generation"
+        title: "Segredo inválido",
+        description: "O segredo fornecido não é válido para geração TOTP"
       })
       return
     }
@@ -150,10 +208,9 @@ export function AddTOTPDialog() {
     setIsSubmitting(true)
 
     try {
-      // Create TOTP codes for each selected team
       const totpCodes = selectedTeams.map(teamId => ({
         name,
-        secret: secret.replace(/[^A-Z2-7]/gi, '').toUpperCase(), // Clean and normalize the secret
+        secret: secret.replace(/[^A-Z2-7]/gi, '').toUpperCase(),
         team_id: teamId,
         created_by: user.id
       }))
@@ -165,14 +222,14 @@ export function AddTOTPDialog() {
       if (error) throw error
 
       toast({
-        title: "Success",
-        description: "TOTP code added successfully. It may take a few moments to appear in the list."
+        title: "Sucesso",
+        description: "Código TOTP adicionado com sucesso. Pode levar alguns momentos para aparecer na lista."
       })
-      setIsOpen(false)
+      handleClose()
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error",
+        title: "Erro",
         description: error.message
       })
     } finally {
@@ -191,7 +248,7 @@ export function AddTOTPDialog() {
         <Plus className="h-5 w-5" />
       </Button>
 
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
+      <Modal isOpen={isOpen} onClose={handleClose}>
         <ModalHeader>
           <ModalTitle>Adicionar Novo Código TOTP</ModalTitle>
         </ModalHeader>
@@ -201,7 +258,7 @@ export function AddTOTPDialog() {
             <Button
               variant="outline"
               className={`flex-1 ${!isScanning ? 'bg-zinc-700 text-white' : 'bg-transparent text-zinc-400'}`}
-              onClick={() => setIsScanning(false)}
+              onClick={() => toggleScanning(false)}
             >
               <KeyRound className="h-4 w-4 mr-2" />
               Entrada Manual
@@ -209,7 +266,7 @@ export function AddTOTPDialog() {
             <Button
               variant="outline"
               className={`flex-1 ${isScanning ? 'bg-zinc-700 text-white' : 'bg-transparent text-zinc-400'}`}
-              onClick={() => setIsScanning(true)}
+              onClick={() => toggleScanning(true)}
             >
               <QrCode className="h-4 w-4 mr-2" />
               Escanear QR
@@ -218,10 +275,12 @@ export function AddTOTPDialog() {
 
           {isScanning ? (
             <>
-              <div 
-                id="qr-reader" 
-                className="bg-zinc-800 rounded-lg overflow-hidden"
-              />
+              <div className="bg-zinc-800 rounded-lg overflow-hidden aspect-video">
+                <video 
+                  ref={videoRef}
+                  className="w-full h-full object-cover"
+                />
+              </div>
               <p className="text-sm text-zinc-400 mt-2 text-center">
                 Aponte sua câmera para um código QR TOTP
               </p>
