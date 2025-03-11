@@ -11,9 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { AddUserDialog } from '@/components/AddUserDialog'
 import { EditUserDialog } from '@/components/EditUserDialog'
 import { generateTOTP, getTimeRemaining } from '@/lib/totp'
-import type { Database } from '@/lib/supabase/types'
-
-type TOTPCode = Database['public']['Tables']['totp_codes']['Row']
+import type { TOTPCode, Team } from '@/lib/supabase/types'
 
 interface User {
   id: string
@@ -36,9 +34,13 @@ interface TeamInfo {
   name: string
 }
 
+interface ExtendedTOTPCode extends TOTPCode {
+  teamsList: TeamInfo[]
+}
+
 export function Dashboard() {
   const { user } = useAuth()
-  const [codes, setCodes] = useState<(TOTPCode & { teamsList: TeamInfo[] })[]>([])
+  const [codes, setCodes] = useState<ExtendedTOTPCode[]>([])
   const [users, setUsers] = useState<User[]>([])
   const [userTeams, setUserTeams] = useState<Record<string, UserTeam[]>>({})
   const [searchQuery, setSearchQuery] = useState('')
@@ -140,7 +142,7 @@ export function Dashboard() {
 
       if (error) throw error
 
-      const codesMap = new Map<string, TOTPCode & { teamsList: TeamInfo[] }>()
+      const codesMap = new Map<string, ExtendedTOTPCode>()
       
       data?.forEach(code => {
         const key = `${code.name}-${code.secret}`
@@ -151,7 +153,7 @@ export function Dashboard() {
           })
         } else {
           const existingCode = codesMap.get(key)!
-          if (code.teams && !existingCode.teamsList.some(t => t.id === code.teams!.id)) {
+          if (code.teams && !existingCode.teamsList.some(t => t.id === code.teams.id)) {
             existingCode.teamsList.push({ id: code.teams.id, name: code.teams.name })
           }
         }
