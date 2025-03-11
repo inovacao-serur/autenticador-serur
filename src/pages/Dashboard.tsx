@@ -34,6 +34,11 @@ interface TeamInfo {
   name: string
 }
 
+interface TeamData {
+  id: string
+  name: string
+}
+
 export function Dashboard() {
   const { user } = useAuth()
   const [codes, setCodes] = useState<(TOTPCode & { teamsList: TeamInfo[] })[]>([])
@@ -62,7 +67,7 @@ export function Dashboard() {
         .select(`
           user_id,
           team_id,
-          teams (
+          teams:teams (
             id,
             name
           )
@@ -77,9 +82,10 @@ export function Dashboard() {
           teamsMap[ut.user_id] = []
         }
         if (ut.teams) {
+          const team = ut.teams as TeamData
           teamsMap[ut.user_id].push({
-            team_id: ut.teams.id,
-            team: { name: ut.teams.name }
+            team_id: team.id,
+            team: { name: team.name }
           })
         }
       })
@@ -108,7 +114,7 @@ export function Dashboard() {
           team_id,
           created_at,
           created_by,
-          teams:team_id (
+          teams:teams (
             id,
             name
           )
@@ -139,15 +145,16 @@ export function Dashboard() {
       
       data?.forEach(code => {
         const key = `${code.name}-${code.secret}`
+        const team = code.teams as TeamData
         if (!codesMap.has(key)) {
           codesMap.set(key, {
             ...code,
-            teamsList: code.teams ? [{ id: code.teams.id, name: code.teams.name }] : []
+            teamsList: team ? [{ id: team.id, name: team.name }] : []
           })
         } else {
           const existingCode = codesMap.get(key)!
-          if (code.teams && !existingCode.teamsList.some(t => t.id === code.teams.id)) {
-            existingCode.teamsList.push({ id: code.teams.id, name: code.teams.name })
+          if (team && !existingCode.teamsList.some(t => t.id === team.id)) {
+            existingCode.teamsList.push({ id: team.id, name: team.name })
           }
         }
       })
