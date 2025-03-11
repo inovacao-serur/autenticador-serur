@@ -77,6 +77,32 @@ export interface Database {
           created_by?: string
         }
       }
+      profiles: {
+        Row: {
+          id: string
+          email: string
+          metadata: {
+            name: string
+            is_admin: boolean
+          }
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          email: string
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          email?: string
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
