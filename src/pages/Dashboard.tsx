@@ -11,7 +11,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { AddUserDialog } from '@/components/AddUserDialog'
 import { EditUserDialog } from '@/components/EditUserDialog'
 import { generateTOTP, getTimeRemaining } from '@/lib/totp'
-import type { TOTPCode } from '@/lib/supabase/client'
+import type { Database } from '@/lib/supabase/types'
+
+type TOTPCode = Database['public']['Tables']['totp_codes']['Row']
 
 interface User {
   id: string
@@ -149,7 +151,7 @@ export function Dashboard() {
           })
         } else {
           const existingCode = codesMap.get(key)!
-          if (code.teams && !existingCode.teamsList.some(t => t.id === code.teams.id)) {
+          if (code.teams && !existingCode.teamsList.some(t => t.id === code.teams!.id)) {
             existingCode.teamsList.push({ id: code.teams.id, name: code.teams.name })
           }
         }
