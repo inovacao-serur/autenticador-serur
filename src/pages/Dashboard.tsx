@@ -34,7 +34,7 @@ interface TeamInfo {
   name: string
 }
 
-interface TeamResponse {
+interface TeamData {
   teams: {
     id: string
     name: string
@@ -54,7 +54,6 @@ export function Dashboard() {
     if (!isAdmin || !user) return
 
     try {
-      // Get all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
@@ -63,7 +62,6 @@ export function Dashboard() {
       if (profilesError) throw profilesError
       setUsers(profiles || [])
 
-      // Get teams for all users
       const { data: teamUsers, error: teamsError } = await supabase
         .from('user_teams')
         .select(`
@@ -77,17 +75,16 @@ export function Dashboard() {
 
       if (teamsError) throw teamsError
 
-      // Build teams map
       const teamsMap: Record<string, UserTeam[]> = {}
       teamUsers?.forEach(ut => {
-        const teamResponse = ut as unknown as TeamResponse
+        const teamData = ut as unknown as TeamData
         if (!teamsMap[ut.user_id]) {
           teamsMap[ut.user_id] = []
         }
-        if (teamResponse.teams) {
+        if (teamData.teams) {
           teamsMap[ut.user_id].push({
-            team_id: teamResponse.teams.id,
-            team: { name: teamResponse.teams.name }
+            team_id: teamData.teams.id,
+            team: { name: teamData.teams.name }
           })
         }
       })
@@ -124,7 +121,6 @@ export function Dashboard() {
         .order('name')
 
       if (!isAdmin) {
-        // For non-admin users, only fetch codes for their teams
         const { data: userTeams } = await supabase
           .from('user_teams')
           .select('team_id')
@@ -142,21 +138,20 @@ export function Dashboard() {
 
       if (error) throw error
 
-      // Group codes by name and secret, collecting all teams
       const codesMap = new Map<string, TOTPCode & { teamsList: TeamInfo[] }>()
       
       data?.forEach(code => {
         const key = `${code.name}-${code.secret}`
-        const codeResponse = code as unknown as TeamResponse
+        const teamData = code as unknown as TeamData
         if (!codesMap.has(key)) {
           codesMap.set(key, {
             ...code,
-            teamsList: codeResponse.teams ? [{ id: codeResponse.teams.id, name: codeResponse.teams.name }] : []
+            teamsList: teamData.teams ? [{ id: teamData.teams.id, name: teamData.teams.name }] : []
           })
         } else {
           const existingCode = codesMap.get(key)!
-          if (codeResponse.teams && !existingCode.teamsList.some(t => t.id === codeResponse.teams.id)) {
-            existingCode.teamsList.push({ id: codeResponse.teams.id, name: codeResponse.teams.name })
+          if (teamData.teams && !existingCode.teamsList.some(t => t.id === teamData.teams.id)) {
+            existingCode.teamsList.push({ id: teamData.teams.id, name: teamData.teams.name })
           }
         }
       })
@@ -175,7 +170,6 @@ export function Dashboard() {
   useEffect(() => {
     if (!user) return
 
-    // Check if user is admin
     const checkAdmin = async () => {
       try {
         const { data: profile } = await supabase
@@ -198,7 +192,6 @@ export function Dashboard() {
     let subscription: ReturnType<typeof supabase.channel> | null = null
 
     const setupSubscription = () => {
-      // Subscribe to changes
       subscription = supabase
         .channel('schema_db_changes')
         .on('postgres_changes', { 
@@ -224,19 +217,17 @@ export function Dashboard() {
         }, () => {
           console.log('User teams changed, refreshing...')
           fetchUsers()
-          fetchCodes() // Also refresh codes as team access might have changed
+          fetchCodes()
         })
         .subscribe()
     }
 
-    // Initial data fetch
     checkAdmin().then(() => {
       fetchCodes()
       fetchUsers()
       setupSubscription()
     })
 
-    // Cleanup subscription on unmount
     return () => {
       if (subscription) {
         console.log('Cleaning up subscription...')
@@ -278,7 +269,6 @@ export function Dashboard() {
         </div>
 
         <TabsContent value="codes" className="space-y-6">
-          {/* Search Bar */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-zinc-400" />
             <Input
@@ -290,7 +280,6 @@ export function Dashboard() {
             />
           </div>
 
-          {/* TOTP Codes List */}
           <div className="space-y-4">
             {filteredCodes.map((code) => (
               <div
@@ -362,7 +351,6 @@ export function Dashboard() {
               <AddUserDialog />
             </div>
 
-            {/* Search Bar */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-zinc-400" />
               <Input
@@ -374,7 +362,6 @@ export function Dashboard() {
               />
             </div>
 
-            {/* Users List */}
             <div className="space-y-4">
               {filteredUsers.map((u) => (
                 <div
