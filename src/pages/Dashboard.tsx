@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase/client'
-import { Search, Copy } from 'lucide-react'
+import { Search, Copy, Shield } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
@@ -38,7 +38,7 @@ interface TeamResponse {
   teams: {
     id: string
     name: string
-  } | null
+  }
 }
 
 export function Dashboard() {
@@ -386,7 +386,12 @@ export function Dashboard() {
                       <h3 className="font-medium">{u.metadata?.name || 'Usuário sem nome'}</h3>
                       <p className="text-sm text-zinc-400">{u.email}</p>
                     </div>
-                    <EditUserDialog user={u} onUpdate={fetchUsers} />
+                    <div className="flex items-center space-x-2">
+                      {u.metadata?.is_admin && (
+                        <Shield className="h-5 w-5 text-blue-400" />
+                      )}
+                      <EditUserDialog user={u} onUpdate={fetchUsers} />
+                    </div>
                   </div>
                   {userTeams[u.id] && userTeams[u.id].length > 0 && (
                     <div className="flex flex-wrap gap-2">
