@@ -7,7 +7,7 @@ export function IOSInstallPrompt() {
 
   useEffect(() => {
     // Check if the device is iOS and the app is not installed
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches
     
     if (isIOS && !isStandalone) {
