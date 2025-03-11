@@ -34,9 +34,11 @@ interface TeamInfo {
   name: string
 }
 
-interface TeamData {
-  id: string
-  name: string
+interface TeamResponse {
+  teams: {
+    id: string
+    name: string
+  } | null
 }
 
 export function Dashboard() {
@@ -67,7 +69,7 @@ export function Dashboard() {
         .select(`
           user_id,
           team_id,
-          teams:teams (
+          teams (
             id,
             name
           )
@@ -77,15 +79,15 @@ export function Dashboard() {
 
       // Build teams map
       const teamsMap: Record<string, UserTeam[]> = {}
-      teamUsers.forEach(ut => {
+      teamUsers?.forEach(ut => {
+        const teamResponse = ut as unknown as TeamResponse
         if (!teamsMap[ut.user_id]) {
           teamsMap[ut.user_id] = []
         }
-        if (ut.teams) {
-          const team = ut.teams as TeamData
+        if (teamResponse.teams) {
           teamsMap[ut.user_id].push({
-            team_id: team.id,
-            team: { name: team.name }
+            team_id: teamResponse.teams.id,
+            team: { name: teamResponse.teams.name }
           })
         }
       })
@@ -114,7 +116,7 @@ export function Dashboard() {
           team_id,
           created_at,
           created_by,
-          teams:teams (
+          teams (
             id,
             name
           )
@@ -145,16 +147,16 @@ export function Dashboard() {
       
       data?.forEach(code => {
         const key = `${code.name}-${code.secret}`
-        const team = code.teams as TeamData
+        const codeResponse = code as unknown as TeamResponse
         if (!codesMap.has(key)) {
           codesMap.set(key, {
             ...code,
-            teamsList: team ? [{ id: team.id, name: team.name }] : []
+            teamsList: codeResponse.teams ? [{ id: codeResponse.teams.id, name: codeResponse.teams.name }] : []
           })
         } else {
           const existingCode = codesMap.get(key)!
-          if (team && !existingCode.teamsList.some(t => t.id === team.id)) {
-            existingCode.teamsList.push({ id: team.id, name: team.name })
+          if (codeResponse.teams && !existingCode.teamsList.some(t => t.id === codeResponse.teams.id)) {
+            existingCode.teamsList.push({ id: codeResponse.teams.id, name: codeResponse.teams.name })
           }
         }
       })
