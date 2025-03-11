@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase/client'
-import { Search, Copy, Users, Shield, Pencil } from 'lucide-react'
+import { Search, Copy } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
@@ -41,16 +41,7 @@ export function Dashboard() {
   const [userTeams, setUserTeams] = useState<Record<string, UserTeam[]>>({})
   const [searchQuery, setSearchQuery] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
-  const [currentTime, setCurrentTime] = useState(Math.floor(Date.now() / 1000))
   const { toast } = useToast()
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(Math.floor(Date.now() / 1000))
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [])
 
   const fetchUsers = useCallback(async () => {
     if (!isAdmin || !user) return
@@ -386,12 +377,7 @@ export function Dashboard() {
                       <h3 className="font-medium">{u.metadata?.name || 'Usuário sem nome'}</h3>
                       <p className="text-sm text-zinc-400">{u.email}</p>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      {u.metadata?.is_admin && (
-                        <Shield className="h-5 w-5 text-blue-400" />
-                      )}
-                      <EditUserDialog user={u} onUpdate={fetchUsers} />
-                    </div>
+                    <EditUserDialog user={u} onUpdate={fetchUsers} />
                   </div>
                   {userTeams[u.id] && userTeams[u.id].length > 0 && (
                     <div className="flex flex-wrap gap-2">
