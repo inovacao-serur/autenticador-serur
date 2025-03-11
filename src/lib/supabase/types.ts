@@ -31,6 +31,10 @@ export interface Database {
           user_id: string
           team_id: string
           created_at: string
+          teams?: {
+            id: string
+            name: string
+          }
         }
         Insert: {
           user_id: string
@@ -51,6 +55,10 @@ export interface Database {
           team_id: string
           created_at: string
           created_by: string
+          teams?: {
+            id: string
+            name: string
+          }
         }
         Insert: {
           id?: string
