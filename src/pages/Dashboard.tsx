@@ -43,7 +43,6 @@ export function Dashboard() {
   const [isAdmin, setIsAdmin] = useState(false)
   const { toast } = useToast()
 
-  // Force re-render every second to update TOTP codes
   useEffect(() => {
     const interval = setInterval(() => {
       setCodes(prevCodes => [...prevCodes])
