@@ -34,13 +34,6 @@ interface TeamInfo {
   name: string
 }
 
-interface TeamData {
-  teams: {
-    id: string
-    name: string
-  }
-}
-
 export function Dashboard() {
   const { user } = useAuth()
   const [codes, setCodes] = useState<(TOTPCode & { teamsList: TeamInfo[] })[]>([])
@@ -49,6 +42,15 @@ export function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
   const { toast } = useToast()
+
+  // Force re-render every second to update TOTP codes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCodes(prevCodes => [...prevCodes])
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [])
 
   const fetchUsers = useCallback(async () => {
     if (!isAdmin || !user) return
@@ -77,14 +79,13 @@ export function Dashboard() {
 
       const teamsMap: Record<string, UserTeam[]> = {}
       teamUsers?.forEach(ut => {
-        const teamData = ut as unknown as TeamData
         if (!teamsMap[ut.user_id]) {
           teamsMap[ut.user_id] = []
         }
-        if (teamData.teams) {
+        if (ut.teams) {
           teamsMap[ut.user_id].push({
-            team_id: teamData.teams.id,
-            team: { name: teamData.teams.name }
+            team_id: ut.teams.id,
+            team: { name: ut.teams.name }
           })
         }
       })
@@ -142,16 +143,15 @@ export function Dashboard() {
       
       data?.forEach(code => {
         const key = `${code.name}-${code.secret}`
-        const teamData = code as unknown as TeamData
         if (!codesMap.has(key)) {
           codesMap.set(key, {
             ...code,
-            teamsList: teamData.teams ? [{ id: teamData.teams.id, name: teamData.teams.name }] : []
+            teamsList: code.teams ? [{ id: code.teams.id, name: code.teams.name }] : []
           })
         } else {
           const existingCode = codesMap.get(key)!
-          if (teamData.teams && !existingCode.teamsList.some(t => t.id === teamData.teams.id)) {
-            existingCode.teamsList.push({ id: teamData.teams.id, name: teamData.teams.name })
+          if (code.teams && !existingCode.teamsList.some(t => t.id === code.teams.id)) {
+            existingCode.teamsList.push({ id: code.teams.id, name: code.teams.name })
           }
         }
       })
