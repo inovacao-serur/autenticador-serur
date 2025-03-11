@@ -115,3 +115,7 @@ export interface Database {
     }
   }
 }
+
+export type Team = Database['public']['Tables']['teams']['Row']
+export type TOTPCode = Database['public']['Tables']['totp_codes']['Row']
+export type Profile = Database['public']['Tables']['profiles']['Row']
