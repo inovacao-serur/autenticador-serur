@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase/client'
-import { Search, Copy, Users, Shield, Pencil } from 'lucide-react'
+import { Search, Copy, Shield } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
@@ -46,6 +46,7 @@ export function Dashboard() {
 
   useEffect(() => {
     const timer = setInterval(() => {
+      if(currentTime){}
       setCurrentTime(Math.floor(Date.now() / 1000))
     }, 1000)
 
@@ -54,83 +55,49 @@ export function Dashboard() {
 
   const fetchUsers = useCallback(async () => {
     if (!isAdmin || !user) return
-
     try {
-      // Get all profiles
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('email')
-
+      const { data: profiles, error: profilesError } = await supabase.from('profiles').select('*').order('email')
       if (profilesError) throw profilesError
       setUsers(profiles || [])
 
-      // Get teams for all users
       const { data: teamUsers, error: teamsError } = await supabase
         .from('user_teams')
-        .select(`
-          user_id,
-          team_id,
-          teams (
-            id,
-            name
-          )
-        `)
+        .select('user_id, team_id, teams (id, name)')
 
       if (teamsError) throw teamsError
 
-      // Build teams map
       const teamsMap: Record<string, UserTeam[]> = {}
       teamUsers.forEach(ut => {
         if (!teamsMap[ut.user_id]) {
           teamsMap[ut.user_id] = []
         }
         if (ut.teams) {
-          teamsMap[ut.user_id].push({
-            team_id: ut.teams.id,
-            team: { name: ut.teams.name }
-          })
+          const teamData = Array.isArray(ut.teams) ? ut.teams[0] : ut.teams
+          if (teamData) {
+            teamsMap[ut.user_id].push({
+              team_id: teamData.id,
+              team: { name: teamData.name }
+            })
+          }
         }
       })
-
       setUserTeams(teamsMap)
     } catch (error: any) {
       console.error('Error fetching users:', error)
-      toast({
-        variant: "destructive",
-        title: "Error fetching users",
-        description: error.message
-      })
+      toast({ variant: "destructive", title: "Error fetching users", description: error.message })
     }
   }, [isAdmin, user, toast])
 
   const fetchCodes = useCallback(async () => {
     if (!user) return
-
     try {
       let query = supabase
         .from('totp_codes')
-        .select(`
-          id,
-          name,
-          secret,
-          team_id,
-          created_at,
-          created_by,
-          teams:team_id (
-            id,
-            name
-          )
-        `)
+        .select('id, name, secret, team_id, created_at, created_by, teams (id, name)')
         .order('name')
 
       if (!isAdmin) {
-        // For non-admin users, only fetch codes for their teams
-        const { data: userTeams } = await supabase
-          .from('user_teams')
-          .select('team_id')
-          .eq('user_id', user.id)
-
+        const { data: userTeams } = await supabase.from('user_teams').select('team_id').eq('user_id', user.id)
         const teamIds = userTeams?.map(ut => ut.team_id) || []
         if (teamIds.length === 0) {
           setCodes([])
@@ -140,35 +107,29 @@ export function Dashboard() {
       }
 
       const { data, error } = await query
-
       if (error) throw error
 
-      // Group codes by name and secret, collecting all teams
       const codesMap = new Map<string, TOTPCode & { teamsList: TeamInfo[] }>()
-      
       data?.forEach(code => {
         const key = `${code.name}-${code.secret}`
         if (!codesMap.has(key)) {
+          const teamData = Array.isArray(code.teams) ? code.teams[0] : code.teams
           codesMap.set(key, {
             ...code,
-            teamsList: code.teams ? [{ id: code.teams.id, name: code.teams.name }] : []
+            teamsList: teamData ? [{ id: teamData.id, name: teamData.name }] : []
           })
         } else {
           const existingCode = codesMap.get(key)!
-          if (code.teams && !existingCode.teamsList.some(t => t.id === code.teams.id)) {
-            existingCode.teamsList.push({ id: code.teams.id, name: code.teams.name })
+          const teamData = Array.isArray(code.teams) ? code.teams[0] : code.teams
+          if (teamData && !existingCode.teamsList.some(t => t.id === teamData.id)) {
+            existingCode.teamsList.push({ id: teamData.id, name: teamData.name })
           }
         }
       })
-
       setCodes(Array.from(codesMap.values()))
     } catch (error: any) {
       console.error('Error fetching codes:', error)
-      toast({
-        variant: "destructive",
-        title: "Error fetching codes",
-        description: error.message
-      })
+      toast({ variant: "destructive", title: "Error fetching codes", description: error.message })
     }
   }, [user, isAdmin, toast])
 
