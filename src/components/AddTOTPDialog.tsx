@@ -193,7 +193,7 @@ export function AddTOTPDialog() {
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
         <ModalHeader>
-          <ModalTitle>Add New TOTP Code</ModalTitle>
+          <ModalTitle>Adicionar Novo Código TOTP</ModalTitle>
         </ModalHeader>
 
         <div className="mt-4">
@@ -204,7 +204,7 @@ export function AddTOTPDialog() {
               onClick={() => setIsScanning(false)}
             >
               <KeyRound className="h-4 w-4 mr-2" />
-              Manual Entry
+              Entrada Manual
             </Button>
             <Button
               variant="outline"
@@ -212,7 +212,7 @@ export function AddTOTPDialog() {
               onClick={() => setIsScanning(true)}
             >
               <QrCode className="h-4 w-4 mr-2" />
-              Scan QR
+              Escanear QR
             </Button>
           </div>
 
@@ -223,35 +223,35 @@ export function AddTOTPDialog() {
                 className="bg-zinc-800 rounded-lg overflow-hidden"
               />
               <p className="text-sm text-zinc-400 mt-2 text-center">
-                Point your camera at a TOTP QR code
+                Aponte sua câmera para um código QR TOTP
               </p>
             </>
           ) : (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-zinc-300">Name</Label>
+                <Label htmlFor="name" className="text-zinc-300">Nome</Label>
                 <Input
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="bg-zinc-800 border-zinc-700 text-white"
-                  placeholder="Enter a name for this code"
+                  placeholder="Digite um nome para este código"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="secret" className="text-zinc-300">Secret Key</Label>
+                <Label htmlFor="secret" className="text-zinc-300">Chave Secreta</Label>
                 <Input
                   id="secret"
                   value={secret}
                   onChange={(e) => setSecret(e.target.value)}
                   className="bg-zinc-800 border-zinc-700 text-white"
-                  placeholder="Enter the secret key"
+                  placeholder="Digite a chave secreta"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-zinc-300">Select Teams</Label>
+                <Label className="text-zinc-300">Selecionar Times</Label>
                 <div className="grid grid-cols-2 gap-2">
                   {teams.map((team) => (
                     <Button
@@ -277,7 +277,7 @@ export function AddTOTPDialog() {
                   ))}
                 </div>
                 <p className="text-sm text-zinc-400 mt-2">
-                  Select one or more teams that will have access to this TOTP code
+                  Selecione um ou mais times que terão acesso a este código TOTP
                 </p>
               </div>
 
@@ -286,7 +286,7 @@ export function AddTOTPDialog() {
                 onClick={handleSubmit}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Adding TOTP Code..." : "Add TOTP Code"}
+                {isSubmitting ? "Adicionando Código TOTP..." : "Adicionar Código TOTP"}
               </Button>
             </div>
           )}

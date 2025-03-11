@@ -183,12 +183,12 @@ export function EditTOTPDialog({ code, onUpdate }: EditTOTPDialogProps) {
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
         <ModalHeader>
-          <ModalTitle>Edit TOTP Code</ModalTitle>
+          <ModalTitle>Editar Código TOTP</ModalTitle>
         </ModalHeader>
 
         <div className="mt-4 space-y-4">
           <div className="space-y-2">
-            <Label className="text-zinc-300">Select Teams</Label>
+            <Label className="text-zinc-300">Selecionar Times</Label>
             <div className="grid grid-cols-2 gap-2">
               {teams.map((team) => (
                 <Button
@@ -214,7 +214,7 @@ export function EditTOTPDialog({ code, onUpdate }: EditTOTPDialogProps) {
               ))}
             </div>
             <p className="text-sm text-zinc-400 mt-2">
-              Select one or more teams that will have access to this TOTP code
+              Selecione um ou mais times que terão acesso a este código TOTP
             </p>
           </div>
 
@@ -222,13 +222,13 @@ export function EditTOTPDialog({ code, onUpdate }: EditTOTPDialogProps) {
             {showDelete ? (
               <div className="space-y-4">
                 <p className="text-sm text-red-400">
-                  To delete this TOTP code, type 'Deletar' below:
+                  Para excluir este código TOTP, digite 'Deletar' abaixo:
                 </p>
                 <Input
                   value={deleteConfirmation}
                   onChange={(e) => setDeleteConfirmation(e.target.value)}
                   className="bg-zinc-800 border-zinc-700 text-white"
-                  placeholder="Type 'Deletar' to confirm"
+                  placeholder="Digite 'Deletar' para confirmar"
                 />
                 <div className="flex space-x-2">
                   <Button
@@ -239,13 +239,13 @@ export function EditTOTPDialog({ code, onUpdate }: EditTOTPDialogProps) {
                       setDeleteConfirmation('')
                     }}
                   >
-                    Cancel
+                    Cancelar
                   </Button>
                   <Button
                     className="flex-1 bg-red-500 hover:bg-red-600 text-white"
                     onClick={handleDelete}
                   >
-                    Delete TOTP Code
+                    Excluir Código TOTP
                   </Button>
                 </div>
               </div>
@@ -255,14 +255,14 @@ export function EditTOTPDialog({ code, onUpdate }: EditTOTPDialogProps) {
                   className="flex-1 bg-white text-black hover:bg-zinc-200"
                   onClick={handleSubmit}
                 >
-                  Update Teams
+                  Atualizar Times
                 </Button>
                 <Button
                   variant="outline"
                   className="flex-1 border-red-500 text-red-500 hover:bg-red-500/10"
                   onClick={() => setShowDelete(true)}
                 >
-                  Delete
+                  Excluir
                 </Button>
               </div>
             )}

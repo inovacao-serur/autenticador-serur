@@ -45,10 +45,8 @@ export function AddUserDialog() {
     }
   }, [isOpen])
 
-  // When isAdmin changes, update selected teams
   useEffect(() => {
     if (isAdmin) {
-      // Select all teams for admin users
       setSelectedTeams(teams.map(team => team.id))
     }
   }, [isAdmin, teams])
@@ -64,7 +62,6 @@ export function AddUserDialog() {
     }
 
     try {
-      // Create user with sign up
       const { data: { user }, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -79,7 +76,6 @@ export function AddUserDialog() {
       if (signUpError) throw signUpError
       if (!user) throw new Error("User creation failed")
 
-      // Add user to selected teams
       const teamPromises = selectedTeams.map(teamId => 
         supabase
           .from('user_teams')
@@ -127,18 +123,18 @@ export function AddUserDialog() {
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
         <ModalHeader>
-          <ModalTitle>Add New User</ModalTitle>
+          <ModalTitle>Adicionar Novo Usuário</ModalTitle>
         </ModalHeader>
 
         <div className="mt-4 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-zinc-300">Name</Label>
+            <Label htmlFor="name" className="text-zinc-300">Nome</Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="bg-zinc-800 border-zinc-700 text-white"
-              placeholder="Enter user's name"
+              placeholder="Digite o nome do usuário"
             />
           </div>
 
@@ -150,24 +146,24 @@ export function AddUserDialog() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="bg-zinc-800 border-zinc-700 text-white"
-              placeholder="Enter user's email"
+              placeholder="Digite o email do usuário"
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-zinc-300">Password</Label>
+            <Label htmlFor="password" className="text-zinc-300">Senha</Label>
             <Input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="bg-zinc-800 border-zinc-700 text-white"
-              placeholder="Enter user's password"
+              placeholder="Digite a senha do usuário"
             />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-zinc-300">User Level</Label>
+            <Label className="text-zinc-300">Nível do Usuário</Label>
             <div className="grid grid-cols-2 gap-2">
               <Button
                 variant="outline"
@@ -180,7 +176,7 @@ export function AddUserDialog() {
                 `}
                 onClick={() => setIsAdmin(false)}
               >
-                User
+                Usuário
               </Button>
               <Button
                 variant="outline"
@@ -199,13 +195,13 @@ export function AddUserDialog() {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-zinc-300">Select Teams</Label>
+            <Label className="text-zinc-300">Selecionar Times</Label>
             <div className="grid grid-cols-2 gap-2">
               {teams.map((team) => (
                 <Button
                   key={team.id}
                   variant="outline"
-                  disabled={isAdmin} // Disable team selection for admins
+                  disabled={isAdmin}
                   className={`
                     border-zinc-700 
                     ${selectedTeams.includes(team.id) 
@@ -230,7 +226,7 @@ export function AddUserDialog() {
             </div>
             {isAdmin && (
               <p className="text-sm text-zinc-400 mt-2">
-                Admins automatically have access to all teams
+                Administradores têm acesso automático a todos os times
               </p>
             )}
           </div>
@@ -239,7 +235,7 @@ export function AddUserDialog() {
             className="w-full mt-6 bg-white text-black hover:bg-zinc-200"
             onClick={handleSubmit}
           >
-            Add User
+            Adicionar Usuário
           </Button>
         </div>
       </Modal>

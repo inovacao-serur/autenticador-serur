@@ -10,7 +10,6 @@ export async function signUp(email: string, password: string) {
 
 export async function signIn(email: string, password: string) {
   try {
-    // Attempt to sign in
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -25,7 +24,6 @@ export async function signIn(email: string, password: string) {
       }
     }
 
-    // After successful sign in, get the user's profile to check admin status
     if (data.user) {
       const { data: profile } = await supabase
         .from('profiles')
@@ -56,14 +54,12 @@ export async function signIn(email: string, password: string) {
 
 export async function signOut() {
   try {
-    // Clear any stored session data first
     localStorage.removeItem('supabase.auth.token')
     localStorage.removeItem('supabase.auth.expires_at')
     localStorage.removeItem('supabase.auth.refresh_token')
     
-    // Sign out from Supabase
     const { error } = await supabase.auth.signOut({
-      scope: 'local' // Only clear local session
+      scope: 'local'
     })
     
     if (error) throw error
@@ -73,6 +69,42 @@ export async function signOut() {
     return {
       error: {
         message: error.message || 'Falha ao fazer logout'
+      }
+    }
+  }
+}
+
+export async function resetPassword(email: string) {
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+
+    if (error) throw error
+    return { error: null }
+  } catch (error: any) {
+    console.error('Password reset error:', error)
+    return {
+      error: {
+        message: error.message || 'Falha ao enviar email de recuperação'
+      }
+    }
+  }
+}
+
+export async function updatePassword(newPassword: string) {
+  try {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    })
+
+    if (error) throw error
+    return { error: null }
+  } catch (error: any) {
+    console.error('Update password error:', error)
+    return {
+      error: {
+        message: error.message || 'Falha ao atualizar senha'
       }
     }
   }
@@ -100,7 +132,6 @@ export async function getUser() {
     if (error) throw error
 
     if (user) {
-      // Get the user's profile including admin status
       const { data: profile } = await supabase
         .from('profiles')
         .select('metadata')
