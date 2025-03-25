@@ -43,7 +43,7 @@ export function AddTOTPDialog() {
       // Then cleanup the code reader
       if (codeReader.current) {
         try {
-          await codeReader.current.reset()
+           codeReader.current = null // codeReader.current.reset() -> Parece que nao existe mais esse reset() em BrowserQRCodeReader
         } catch (error) {
           console.warn('Error resetting code reader:', error)
         }
@@ -322,6 +322,8 @@ export function AddTOTPDialog() {
                           ? 'bg-zinc-700 text-white' 
                           : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-800'
                         }
+                        max-[390px]:whitespace-normal
+                        max-[390px]:text-xs
                       `}
                       onClick={() => {
                         setSelectedTeams(prev => 
