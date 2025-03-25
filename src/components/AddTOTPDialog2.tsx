@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -304,9 +304,9 @@ export function AddTOTPDialog2() {
                             toggleScanning(false)
                           }
                         }
-                      } catch (err) {
+                      } catch (error) {
                         // Ignore parsing errors as they're expected when scanning invalid codes
-                        console.debug('Invalid QR code format:', err)
+                        console.debug('Invalid QR code format:', error)
                       }
                     }
                     // Only log unexpected errors
