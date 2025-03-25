@@ -5,7 +5,7 @@ import { Search, Copy, Shield } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
-import { AddTOTPDialog } from '@/components/AddTOTPDialog'
+import { AddTOTPDialog2 } from '@/components/AddTOTPDialog2'
 import { EditTOTPDialog } from '@/components/EditTOTPDialog'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { AddUserDialog } from '@/components/AddUserDialog'
@@ -235,7 +235,7 @@ export function Dashboard() {
               </TabsTrigger>
             )}
           </TabsList>
-          {isAdmin && <AddTOTPDialog />}
+          {isAdmin && <AddTOTPDialog2 />}
         </div>
 
         <TabsContent value="codes" className="space-y-6">
