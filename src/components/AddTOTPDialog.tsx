@@ -43,7 +43,7 @@ export function AddTOTPDialog() {
       // Then cleanup the code reader
       if (codeReader.current) {
         try {
-          codeReader.current = null // codeReader.current.reset() -> Parece que nao existe mais esse reset() em BrowserQRCodeReader
+          await codeReader.current.reset() // codeReader.current.reset() -> Parece que nao existe mais esse reset() em BrowserQRCodeReader
         } catch (error) {
           console.warn('Error resetting code reader:', error)
         }
