@@ -268,8 +268,8 @@ export function AddTOTPDialog() {
                           ? 'bg-zinc-700 text-white'
                           : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-800'
                         }
-                        max-[390px]:whitespace-normal
-                        max-[390px]:text-xs
+                        max-[480px]:whitespace-normal
+                        max-[480px]:text-xs
                       `}
                       onClick={() => {
                         setSelectedTeams(prev =>

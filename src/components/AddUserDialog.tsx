@@ -126,8 +126,8 @@ export function AddUserDialog() {
           <ModalTitle className='pt-3'>Adicionar Novo Usuário</ModalTitle>
         </ModalHeader>
 
-        <div className="mt-1 space-y-4 max-[390px]:space-y-3">
-          <div className="space-y-2 max-[390px]:space-y-0">
+        <div className="mt-1 space-y-4 max-[480px]:space-y-3">
+          <div className="space-y-2 max-[480px]:space-y-0">
             <Label htmlFor="name" className="text-zinc-300">Nome</Label>
             <Input
               id="name"
@@ -138,7 +138,7 @@ export function AddUserDialog() {
             />
           </div>
 
-          <div className="space-y-2 max-[390px]:space-y-0">
+          <div className="space-y-2 max-[480px]:space-y-0">
             <Label htmlFor="email" className="text-zinc-300">Email</Label>
             <Input
               id="email"
@@ -150,7 +150,7 @@ export function AddUserDialog() {
             />
           </div>
           
-          <div className="space-y-2 max-[390px]:space-y-0">
+          <div className="space-y-2 max-[480px]:space-y-0">
             <Label htmlFor="password" className="text-zinc-300">Senha</Label>
             <Input
               id="password"
@@ -209,8 +209,8 @@ export function AddUserDialog() {
                       : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-800'
                     }
                     ${isAdmin && 'opacity-50 cursor-not-allowed'}
-                    max-[390px]:whitespace-normal
-                    max-[390px]:text-xs
+                    max-[480px]:whitespace-normal
+                    max-[480px]:text-xs
                   `}
                   onClick={() => {
                     if (!isAdmin) {
