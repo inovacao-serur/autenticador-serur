@@ -121,7 +121,7 @@ export function AddUserDialog() {
         <UserPlus className="h-5 w-5" />
       </Button>
 
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} className='px-4 py-3'>
+      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} className='px-4 py-2'>
         <ModalHeader>
           <ModalTitle className='pt-3'>Adicionar Novo Usuário</ModalTitle>
         </ModalHeader>
