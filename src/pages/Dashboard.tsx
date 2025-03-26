@@ -13,6 +13,7 @@ import { EditUserDialog } from '@/components/EditUserDialog'
 import { generateTOTP, getTimeRemaining } from '@/lib/totp'
 import type { TOTPCode } from '@/lib/supabase/client'
 
+
 interface User {
   id: string
   email: string
@@ -45,6 +46,12 @@ export function Dashboard() {
   const { toast } = useToast()
 
   useEffect(() => {
+
+    // fetch("/public/manifest.webmanifest")
+    // .then((res) => res.json())
+    // .then((json) => console.log(json))
+    
+    
     const timer = setInterval(() => {
       if(currentTime){}
       setCurrentTime(Math.floor(Date.now() / 1000))
