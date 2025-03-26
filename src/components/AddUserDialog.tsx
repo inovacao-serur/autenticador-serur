@@ -209,6 +209,8 @@ export function AddUserDialog() {
                       : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-800'
                     }
                     ${isAdmin && 'opacity-50 cursor-not-allowed'}
+                    max-[390px]:whitespace-normal
+                    max-[390px]:text-xs
                   `}
                   onClick={() => {
                     if (!isAdmin) {
