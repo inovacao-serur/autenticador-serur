@@ -33,28 +33,6 @@ export function AddTOTPDialog2() {
 
   // Stop camera and cleanup
   const stopCamera = async () => {
-    // try {
-    //   // First stop the video stream
-    //   if (videoRef.current?.srcObject) {
-    //     const stream = videoRef.current.srcObject as MediaStream
-    //     stream.getTracks().forEach(track => {
-    //       track.stop()
-    //     })
-    //     videoRef.current.srcObject = null
-    //   }
-
-    //   // Then cleanup the code reader
-    //   if (codeReader.current) {
-    //     try {
-    //       await codeReader.current.reset()
-    //     } catch (error) {
-    //       console.warn('Error resetting code reader:', error)
-    //     }
-    //     codeReader.current = null
-    //   }
-    // } catch (error) {
-    //   console.warn('Error during camera cleanup:', error)
-    // }
     setStopVideo(true)
     setTimeout(() => {
       setIsScanning(false)
@@ -107,84 +85,6 @@ export function AddTOTPDialog2() {
       setIsSubmitting(false)
     }
   }, [isOpen])
-
-  // Handle camera initialization and cleanup
-  // useEffect(() => {
-  //   let mounted = true
-
-  //   const initializeScanner = async () => {
-  //     if (!isScanning || !videoRef.current || !mounted) {
-  //       await stopCamera()
-  //       return
-  //     }
-
-  //     try {
-  //       // Clean up any existing scanner
-  //       await stopCamera()
-
-  //       // Initialize new scanner
-  //       codeReader.current = new BrowserQRCodeReader()
-  //       const videoInputDevices = await BrowserQRCodeReader.listVideoInputDevices()
-
-  //       // Prefer rear camera on mobile devices
-  //       const rearCamera = videoInputDevices.find(device =>
-  //         device.label.toLowerCase().includes('back') ||
-  //         device.label.toLowerCase().includes('rear')
-  //       )
-
-  //       const deviceId = rearCamera ? rearCamera.deviceId : videoInputDevices[0]?.deviceId
-
-  //       if (!deviceId) {
-  //         throw new Error('No camera found')
-  //       }
-
-  //       await codeReader.current.decodeFromVideoDevice(
-  //         deviceId,
-  //         videoRef.current,
-  //         (result, error) => {
-  //           if (!mounted) return
-
-  //           if (result) {
-  //             try {
-  //               const parsed = parseOTPAuthURL(result.getText())
-  //               if (parsed && parsed.secret) {
-  //                 if (validateTOTPSecret(parsed.secret)) {
-  //                   setSecret(parsed.secret)
-  //                   setName(parsed.label || '')
-  //                   toggleScanning(false)
-  //                 }
-  //               }
-  //             } catch (err) {
-  //               // Ignore parsing errors as they're expected when scanning invalid codes
-  //               console.debug('Invalid QR code format:', err)
-  //             }
-  //           }
-  //           // Only log unexpected errors
-  //           if (error && error.name !== 'NotFoundException') {
-  //             console.debug('QR scan error:', error)
-  //           }
-  //         }
-  //       )
-  //     } catch (error) {
-  //       if (!mounted) return
-
-  //       console.error('Error initializing scanner:', error)
-  //       toast({
-  //         variant: "destructive",
-  //         title: "Erro na câmera",
-  //         description: "Não foi possível inicializar a câmera. Verifique as permissões."
-  //       })
-  //       setIsScanning(false)
-  //     }
-  //   }
-
-  //   initializeScanner()
-
-  //   return () => {
-  //     mounted = false
-  //     stopCamera()
-  //   }
-  // }, [isScanning])
 
   const handleSubmit = async () => {
     if (!name || !secret || selectedTeams.length === 0) {
