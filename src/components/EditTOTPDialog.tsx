@@ -200,6 +200,8 @@ export function EditTOTPDialog({ code, onUpdate }: EditTOTPDialogProps) {
                       ? 'bg-zinc-700 text-white' 
                       : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-800'
                     }
+                    max-[390px]:whitespace-normal
+                    max-[390px]:text-xs
                   `}
                   onClick={() => {
                     setSelectedTeams(prev => 
