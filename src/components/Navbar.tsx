@@ -21,7 +21,7 @@ export function Navbar() {
 
   return (
     <nav className="border-b border-zinc-800 bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-black/60">
-      <div className="container flex h-14 sm:h-16 items-center px-4">
+      <div className="w-full flex h-14 sm:h-16 items-center  px-4">
         <Link to={user ? "/dashboard" : "/"} className="flex items-center">
           <svg className="w-[120px] h-[16px] sm:w-[140px] sm:h-[20px] md:w-[183px] md:h-[25px]" viewBox="0 0 183 25" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M181.504 14H177V16.8378V19.6757H182.808V15.2739L181.504 14Z" fill="#2943EE"/>
