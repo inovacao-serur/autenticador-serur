@@ -94,10 +94,11 @@ export function Dashboard() {
       let query = supabase
         .from('totp_codes')
         .select('id, name, secret, team_id, created_at, created_by, teams (id, name)')
-        .order('name')
+        .order('created_at', { ascending: false }) // ordenando por data de criação mais recente
 
       if (!isAdmin) {
         const { data: userTeams } = await supabase.from('user_teams').select('team_id').eq('user_id', user.id)
+       
         const teamIds = userTeams?.map(ut => ut.team_id) || []
         if (teamIds.length === 0) {
           setCodes([])
@@ -105,7 +106,6 @@ export function Dashboard() {
         }
         query = query.in('team_id', teamIds)
       }
-
       const { data, error } = await query
       if (error) throw error
 
@@ -206,10 +206,12 @@ export function Dashboard() {
     }
   }, [user, fetchCodes, fetchUsers, toast])
 
-  const filteredCodes = codes.filter(code => 
+  const filteredCodes = codes.filter((code) => 
     code.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  
+  
   const filteredUsers = users.filter(user =>
     user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.metadata?.name?.toLowerCase().includes(searchQuery.toLowerCase())
