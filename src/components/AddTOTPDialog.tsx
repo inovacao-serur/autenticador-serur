@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -8,7 +8,9 @@ import { supabase } from '@/lib/supabase/client'
 import { Modal, ModalHeader, ModalTitle } from '@/components/ui/modal'
 import { useAuth } from '@/contexts/AuthContext'
 import { validateTOTPSecret, parseOTPAuthURL } from '@/lib/totp'
-import { BrowserQRCodeReader } from '@zxing/browser'
+//import { BrowserQRCodeReader } from '@zxing/browser'
+import BarCodeScanningComponent from 'react-qr-barcode-scanner'
+//import { Exception } from '@zxing/library'
 
 interface Team {
   id: string
@@ -23,35 +25,19 @@ export function AddTOTPDialog() {
   const [selectedTeams, setSelectedTeams] = useState<string[]>([])
   const [isScanning, setIsScanning] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const codeReader = useRef<BrowserQRCodeReader | null>(null)
+  const [stopVideo, setStopVideo] = useState(false)
+  // const videoRef = useRef<HTMLVideoElement>(null)
+  // const codeReader = useRef<BrowserQRCodeReader | null>(null)
   const { toast } = useToast()
   const { user } = useAuth()
 
   // Stop camera and cleanup
   const stopCamera = async () => {
-    try {
-      // First stop the video stream
-      if (videoRef.current?.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream
-        stream.getTracks().forEach(track => {
-          track.stop()
-        })
-        videoRef.current.srcObject = null
-      }
-
-      // Then cleanup the code reader
-      if (codeReader.current) {
-        try {
-           codeReader.current = null // codeReader.current.reset() -> Parece que nao existe mais esse reset() em BrowserQRCodeReader
-        } catch (error) {
-          console.warn('Error resetting code reader:', error)
-        }
-        codeReader.current = null
-      }
-    } catch (error) {
-      console.warn('Error during camera cleanup:', error)
-    }
+    setStopVideo(true)
+    setTimeout(() => {
+      setIsScanning(false)
+      setStopVideo(false)
+    }, 500)
   }
 
   // Handle dialog close
@@ -66,6 +52,7 @@ export function AddTOTPDialog() {
       await stopCamera()
     }
     setIsScanning(scan)
+    setStopVideo(false)
   }
 
   useEffect(() => {
@@ -74,7 +61,7 @@ export function AddTOTPDialog() {
         .from('teams')
         .select('id, name')
         .order('name')
-      
+
       if (error) {
         toast({
           variant: "destructive",
@@ -98,84 +85,6 @@ export function AddTOTPDialog() {
       setIsSubmitting(false)
     }
   }, [isOpen])
-
-  // Handle camera initialization and cleanup
-  useEffect(() => {
-    let mounted = true
-
-    const initializeScanner = async () => {
-      if (!isScanning || !videoRef.current || !mounted) {
-        await stopCamera()
-        return
-      }
-
-      try {
-        // Clean up any existing scanner
-        await stopCamera()
-
-        // Initialize new scanner
-        codeReader.current = new BrowserQRCodeReader()
-        const videoInputDevices = await BrowserQRCodeReader.listVideoInputDevices()
-        
-        // Prefer rear camera on mobile devices
-        const rearCamera = videoInputDevices.find(device => 
-          device.label.toLowerCase().includes('back') || 
-          device.label.toLowerCase().includes('rear')
-        )
-        
-        const deviceId = rearCamera ? rearCamera.deviceId : videoInputDevices[0]?.deviceId
-
-        if (!deviceId) {
-          throw new Error('No camera found')
-        }
-
-        await codeReader.current.decodeFromVideoDevice(
-          deviceId,
-          videoRef.current,
-          (result, error) => {
-            if (!mounted) return
-
-            if (result) {
-              try {
-                const parsed = parseOTPAuthURL(result.getText())
-                if (parsed && parsed.secret) {
-                  if (validateTOTPSecret(parsed.secret)) {
-                    setSecret(parsed.secret)
-                    setName(parsed.label || '')
-                    toggleScanning(false)
-                  }
-                }
-              } catch (err) {
-                // Ignore parsing errors as they're expected when scanning invalid codes
-                console.debug('Invalid QR code format:', err)
-              }
-            }
-            // Only log unexpected errors
-            if (error && error.name !== 'NotFoundException') {
-              console.debug('QR scan error:', error)
-            }
-          }
-        )
-      } catch (error) {
-        if (!mounted) return
-        
-        console.error('Error initializing scanner:', error)
-        toast({
-          variant: "destructive",
-          title: "Erro na câmera",
-          description: "Não foi possível inicializar a câmera. Verifique as permissões."
-        })
-        setIsScanning(false)
-      }
-    }
-
-    initializeScanner()
-
-    return () => {
-      mounted = false
-      stopCamera()
-    }
-  }, [isScanning])
 
   const handleSubmit = async () => {
     if (!name || !secret || selectedTeams.length === 0) {
@@ -276,10 +185,47 @@ export function AddTOTPDialog() {
           {isScanning ? (
             <>
               <div className="bg-zinc-800 rounded-lg overflow-hidden aspect-video">
-                <video 
+                {/* <video
                   ref={videoRef}
                   className="w-full h-full object-cover"
-                />
+                /> */}
+                <BarCodeScanningComponent
+                  width="100%"
+                  height="100%"
+                  facingMode="environment"
+                  onUpdate={ (_, result) => {
+                    if (result) {
+                      try {
+                        const parsed = parseOTPAuthURL(result.getText())
+                        if (parsed && parsed.secret) {
+                          if (validateTOTPSecret(parsed.secret)) {
+                            setSecret(parsed.secret)
+                            setName(parsed.label || '')
+                            toggleScanning(false)
+                          }
+                        }
+                      } catch (error) {
+                        // Ignore parsing errors as they're expected when scanning invalid codes
+                        console.debug('Invalid QR code format:', error)
+                      }
+                    }
+                    // Only log unexpected errors
+                    // if (error && error.name !== 'NotFoundException') {
+                    //  console.debug('QR scan error:', error)
+                    // }
+                  }
+                }
+                onError={(error) => {
+                  console.error('Error scanning QR code:', error)
+                  toast({
+                    variant: "destructive",
+                    title: "Erro ao escanear QR",
+                    description: "Não foi possível escanear o código QR. Tente novamente."
+                  });
+                  setIsScanning(false)
+                }}
+                stopStream={stopVideo}
+                  />
               </div>
               <p className="text-sm text-zinc-400 mt-2 text-center">
                 Aponte sua câmera para um código QR TOTP
@@ -297,7 +243,7 @@ export function AddTOTPDialog() {
                   placeholder="Digite um nome para este código"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="secret" className="text-zinc-300">Chave Secreta</Label>
                 <Input
@@ -317,16 +263,16 @@ export function AddTOTPDialog() {
                       key={team.id}
                       variant="outline"
                       className={`
-                        border-zinc-700 
-                        ${selectedTeams.includes(team.id) 
-                          ? 'bg-zinc-700 text-white' 
+                        border-zinc-700
+                        ${selectedTeams.includes(team.id)
+                          ? 'bg-zinc-700 text-white'
                           : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-800'
                         }
                         max-[390px]:whitespace-normal
                         max-[390px]:text-xs
                       `}
                       onClick={() => {
-                        setSelectedTeams(prev => 
+                        setSelectedTeams(prev =>
                           prev.includes(team.id)
                             ? prev.filter(id => id !== team.id)
                             : [...prev, team.id]
