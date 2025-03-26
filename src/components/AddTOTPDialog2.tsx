@@ -293,7 +293,7 @@ export function AddTOTPDialog2() {
                   width="100%"
                   height="100%"
                   facingMode="environment"
-                  onUpdate={ (error, result) => {
+                  onUpdate={ (_, result) => {
                     if (result) {
                       try {
                         const parsed = parseOTPAuthURL(result.getText())
