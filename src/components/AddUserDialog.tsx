@@ -121,13 +121,13 @@ export function AddUserDialog() {
         <UserPlus className="h-5 w-5" />
       </Button>
 
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
+      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} className='px-4 py-3'>
         <ModalHeader>
-          <ModalTitle>Adicionar Novo Usuário</ModalTitle>
+          <ModalTitle className='pt-3'>Adicionar Novo Usuário</ModalTitle>
         </ModalHeader>
 
-        <div className="mt-4 space-y-4">
-          <div className="space-y-2">
+        <div className="mt-1 space-y-4 max-[390px]:space-y-3">
+          <div className="space-y-2 max-[390px]:space-y-0">
             <Label htmlFor="name" className="text-zinc-300">Nome</Label>
             <Input
               id="name"
@@ -138,7 +138,7 @@ export function AddUserDialog() {
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 max-[390px]:space-y-0">
             <Label htmlFor="email" className="text-zinc-300">Email</Label>
             <Input
               id="email"
@@ -150,7 +150,7 @@ export function AddUserDialog() {
             />
           </div>
           
-          <div className="space-y-2">
+          <div className="space-y-2 max-[390px]:space-y-0">
             <Label htmlFor="password" className="text-zinc-300">Senha</Label>
             <Input
               id="password"
