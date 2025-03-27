@@ -13,13 +13,15 @@ interface Team {
 }
 
 interface ModalContentProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
+  isRegisterPage?: boolean;
 }
 
 export function ModalContent({
   isOpen = true,
   onClose = () => {},
+  isRegisterPage = false
 }: ModalContentProps) {
 
     const [name, setName] = useState('')
@@ -28,7 +30,10 @@ export function ModalContent({
     const [isAdmin, setIsAdmin] = useState(false)
     const [teams, setTeams] = useState<Team[]>([])
     const [selectedTeams, setSelectedTeams] = useState<string[]>([])
+    const [token, setToken] = useState('')
     const { toast } = useToast()
+
+    const supabaseCurrentClient = isRegisterPage ? supabase : supabaseSignUp
   
     useEffect(() => {
       const fetchTeams = async () => {
@@ -48,10 +53,10 @@ export function ModalContent({
         setTeams(data || [])
       }
   
-      if (isOpen) {
+      if (isOpen || isRegisterPage) {
         fetchTeams()
       }
-    }, [isOpen])
+    }, [isOpen, isRegisterPage])
   
     useEffect(() => {
       if (isAdmin) {
@@ -68,9 +73,18 @@ export function ModalContent({
         })
         return
       }
+
+      if (isRegisterPage && token !== import.meta.env.VITE_REGISTRATION_TOKEN) {
+        toast({
+          variant: "destructive",
+          title: "Token inválido",
+          description: "O token fornecido é inválido"
+        })  
+        return
+      }
   
       try {
-        const { data: { user }, error: signUpError } = await supabaseSignUp.auth.signUp({
+        const { data: { user }, error: signUpError } = await supabaseCurrentClient.auth.signUp({
           email,
           password,
           options: {
@@ -117,7 +131,7 @@ export function ModalContent({
   return (
     <Modal isOpen={isOpen} onClose={onClose} className='px-4 py-2'>
       <ModalHeader>
-        <ModalTitle className='pt-3'>Adicionar Novo Usuário</ModalTitle>
+        <ModalTitle className='pt-3'>{isRegisterPage ? 'Faça Seu Cadastro' : 'Adicionar Novo Usuário'}</ModalTitle>
       </ModalHeader>
 
       <div className="mt-1 space-y-4 max-[480px]:space-y-3">
@@ -128,7 +142,7 @@ export function ModalContent({
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="bg-zinc-800 border-zinc-700 text-white"
-            placeholder="Digite o nome do usuário"
+            placeholder={isRegisterPage ? 'Digite seu nome' : 'Digite o nome do usuário'}
           />
         </div>
 
@@ -140,7 +154,7 @@ export function ModalContent({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="bg-zinc-800 border-zinc-700 text-white"
-            placeholder="Digite o email do usuário"
+            placeholder={isRegisterPage ? 'Digite seu email' : 'Digite o email do usuário'}
           />
         </div>
         
@@ -152,14 +166,29 @@ export function ModalContent({
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="bg-zinc-800 border-zinc-700 text-white"
-            placeholder="Digite a senha do usuário"
+            placeholder={isRegisterPage ? 'Digite sua senha' : 'Digite a senha do usuário'}
           />
         </div>
 
-        <div className="space-y-2">
-          <Label className="text-zinc-300">Nível do Usuário</Label>
-          <div className="grid grid-cols-2 gap-2">
-            <Button
+        {isRegisterPage && (
+          <div className="space-y-2 max-[480px]:space-y-0">
+            <Label htmlFor="token" className="text-zinc-300">Token</Label>
+            <Input
+            id="token"
+            type="text"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            className="bg-zinc-800 border-zinc-700 text-white"
+              placeholder="Digite o token para registro"
+            />
+          </div>
+        )}
+
+        {!isRegisterPage && (
+          <div className="space-y-2">
+            <Label className="text-zinc-300">Nível do Usuário</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
               variant="outline"
               className={`
                 border-zinc-700 
@@ -185,8 +214,9 @@ export function ModalContent({
             >
               Admin
             </Button>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="space-y-2">
           <Label className="text-zinc-300">Selecionar Times</Label>
@@ -228,10 +258,10 @@ export function ModalContent({
         </div>
 
         <Button
-          className="w-full mt-6 bg-white text-black hover:bg-zinc-200"
+          className="w-full mt-6 bg-white text-black hover:bg-zinc-200 mb-2"
           onClick={handleSubmit}
         >
-          Adicionar Usuário
+          {isRegisterPage ? 'Cadastrar' : 'Adicionar Usuário'}
         </Button>
       </div>
     </Modal>
