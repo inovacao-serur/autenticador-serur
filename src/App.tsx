@@ -7,6 +7,7 @@ import { Dashboard } from '@/pages/Dashboard'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { PrivateRoute } from '@/components/PrivateRoute'
 import { IOSInstallPrompt } from '@/components/IOSInstallPrompt'
+import { Register } from './pages/Register'
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
               </PrivateRoute>
             }
           />
+          <Route path="/register" element={<Register />} />
         </Route>
       </Routes>
       <Toaster />
