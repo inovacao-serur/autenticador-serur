@@ -91,7 +91,7 @@ export function Dashboard() {
       setUserTeams(teamsMap)
     } catch (error: any) {
       console.error('Error fetching users:', error)
-      toast({ variant: "destructive", title: "Error fetching users", description: error.message })
+      toast({ variant: "destructive", title: "Erro ao buscar usuários", description: error.message })
     }
   }, [isAdmin, user, toast])
 
@@ -136,7 +136,7 @@ export function Dashboard() {
       setCodes(Array.from(codesMap.values()))
     } catch (error: any) {
       console.error('Error fetching codes:', error)
-      toast({ variant: "destructive", title: "Error fetching codes", description: error.message })
+      toast({ variant: "destructive", title: "Erro ao buscar códigos", description: error.message })
     }
   }, [user, isAdmin, toast])
 
@@ -157,7 +157,7 @@ export function Dashboard() {
         console.error('Error checking admin status:', error)
         toast({
           variant: "destructive",
-          title: "Error checking admin status",
+          title: "Erro ao verificar o status do administrador",
           description: error.message
         })
       }

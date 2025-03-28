@@ -70,7 +70,7 @@ export function EditUserDialog({ user, onUpdate }: EditUserDialogProps) {
           console.error('Error fetching data:', error)
           toast({
             variant: "destructive",
-            title: "Error fetching data",
+            title: "Erro ao buscar dados",
             description: error.message
           })
         }
@@ -170,8 +170,8 @@ export function EditUserDialog({ user, onUpdate }: EditUserDialogProps) {
       }
 
       toast({
-        title: "Success",
-        description: "User updated successfully"
+        title: "Sucesso",
+        description: "Usuário atualizado com sucesso"
       })
       setIsOpen(false)
       onUpdate()
@@ -179,7 +179,7 @@ export function EditUserDialog({ user, onUpdate }: EditUserDialogProps) {
       console.error('Error updating user:', error)
       toast({
         variant: "destructive",
-        title: "Error updating user",
+        title: "Erro ao atualizar o usuário",
         description: error.message
       })
     }

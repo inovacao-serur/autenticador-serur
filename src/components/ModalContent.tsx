@@ -45,7 +45,7 @@ export function ModalContent({
       if (error) {
         toast({
           variant: "destructive",
-          title: "Error fetching teams",
+          title: "Erro ao buscar equipes",
           description: error.message
         })
         return
@@ -69,8 +69,8 @@ export function ModalContent({
     if (!name || !email || !password || selectedTeams.length === 0) {
       toast({
         variant: "destructive",
-        title: "Validation error",
-        description: "Please fill in all required fields and select at least one team"
+        title: "Erro de validação",
+        description: "Preencha todos os campos obrigatórios e selecione pelo menos uma equipe"
       })
       return
     }
@@ -107,15 +107,15 @@ export function ModalContent({
         })))
 
       toast({
-        title: "Success",
-        description: "User created successfully"
+        title: "Sucesso",
+        description: "Usuário criado com sucesso"
       })
       onClose()
       resetForm()
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error",
+        title: "Erro",
         description: error.message
       })
     }

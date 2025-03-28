@@ -65,7 +65,7 @@ export function AddTOTPDialog() {
       if (error) {
         toast({
           variant: "destructive",
-          title: "Error fetching teams",
+          title: "Erro ao buscar equipes",
           description: error.message
         })
         return
@@ -132,7 +132,7 @@ export function AddTOTPDialog() {
 
       toast({
         title: "Sucesso",
-        description: "Código TOTP adicionado com sucesso. Pode levar alguns momentos para aparecer na lista."
+        description: "Código TOTP adicionado com sucesso. Pode levar um momento para aparecer na lista"
       })
       handleClose()
     } catch (error: any) {

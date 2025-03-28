@@ -54,7 +54,7 @@ export function EditTOTPDialog({ code, onUpdate }: EditTOTPDialogProps) {
         } catch (error: any) {
           toast({
             variant: "destructive",
-            title: "Error fetching teams",
+            title: "Erro ao buscar equipes",
             description: error.message
           })
         }
@@ -68,8 +68,8 @@ export function EditTOTPDialog({ code, onUpdate }: EditTOTPDialogProps) {
     if (selectedTeams.length === 0) {
       toast({
         variant: "destructive",
-        title: "Validation error",
-        description: "Please select at least one team"
+        title: "Erro de validação",
+        description: "Por favor, selecione pelo menos um time"
       })
       return
     }
@@ -122,15 +122,15 @@ export function EditTOTPDialog({ code, onUpdate }: EditTOTPDialogProps) {
       }
 
       toast({
-        title: "Success",
-        description: "TOTP code updated successfully"
+        title: "Sucesso",
+        description: "Código TOTP atualizado com sucesso" 
       })
       setIsOpen(false)
       onUpdate()
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error updating TOTP code",
+        title: "Erro para atualizar código TOTP", 
         description: error.message
       })
     }
@@ -140,8 +140,8 @@ export function EditTOTPDialog({ code, onUpdate }: EditTOTPDialogProps) {
     if (deleteConfirmation !== 'Deletar') {
       toast({
         variant: "destructive",
-        title: "Invalid confirmation",
-        description: "Please type 'Deletar' to confirm deletion"
+        title: "Confirmação inválida",
+        description: "Digite 'Deletar' para confirmar a exclusão"
       })
       return
     }
@@ -156,15 +156,15 @@ export function EditTOTPDialog({ code, onUpdate }: EditTOTPDialogProps) {
       if (error) throw error
 
       toast({
-        title: "Success",
-        description: "TOTP code deleted successfully"
+        title: "Sucesso",
+        description: "Código TOTP deletado com sucesso" 
       })
       setIsOpen(false)
       onUpdate()
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error deleting TOTP code",
+        title: "Erro para deletar código TOTP",
         description: error.message
       })
     }
