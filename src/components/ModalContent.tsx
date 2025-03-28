@@ -130,7 +130,7 @@ export function ModalContent({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className='px-4 py-2 max-sm:w-auto rounded-sm'>
+    <Modal isOpen={isOpen} onClose={onClose} className= {isRegisterPage ? "px-4 py-2 max-sm:w-auto rounded-sm" : 'px-4 py-2' }>
       {
         isRegisterPage ? (
           <ModalHeader className=' max-sm:h-5'>
