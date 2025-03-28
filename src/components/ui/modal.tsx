@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useLocation } from 'react-router-dom'
 
 interface ModalProps {
   isOpen: boolean
@@ -11,6 +12,9 @@ interface ModalProps {
 
 export function Modal({ isOpen, onClose, children, className }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null)
+
+  const location = useLocation()
+  const isRegisterPage = location.pathname === '/register'
   
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -49,7 +53,7 @@ export function Modal({ isOpen, onClose, children, className }: ModalProps) {
           onClick={onClose}
           className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-zinc-400 hover:text-white"
         >
-          <X className="h-4 w-4" />
+          <X className={isRegisterPage ? "hidden" : "h-4 w-4"}/>
           <span className="sr-only">Close</span>
         </button>
       </div>
